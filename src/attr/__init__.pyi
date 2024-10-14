@@ -139,6 +139,18 @@ class Attribute(Generic[_T]):
 
     def evolve(self, **changes: Any) -> "Attribute[Any]": ...
 
+class Field(Generic[_T]):
+    factory: Callable[[], _T] | None
+    repr: _ReprArgType
+    eq: _EqOrderType
+    order: _EqOrderType
+    hash: bool | None
+    init: bool
+    metadata: dict[Any, Any] | None
+    kw_only: bool
+    on_setattr: _OnSetAttrType
+    alias: str | None
+
 # NOTE: We had several choices for the annotation to use for type arg:
 # 1) Type[_T]
 #   - Pros: Handles simple cases correctly

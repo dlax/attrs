@@ -18,7 +18,7 @@ from operator import itemgetter
 
 # We need to import _compat itself in addition to the _compat members to avoid
 # having the thread-local in the globals here.
-from . import _compat, _config, setters
+from . import _annotations, _compat, _config, setters
 from ._compat import (
     PY_3_10_PLUS,
     PY_3_11_PLUS,
@@ -202,6 +202,25 @@ def attrib(
         order_key=order_key,
         on_setattr=on_setattr,
         alias=alias,
+    )
+
+
+def _attrib_from_field(field, *, default, converters):
+    return attrib(
+        default=default,
+        validator=None,
+        repr=field.repr,
+        hash=field.hash,
+        init=field.init,
+        metadata=field.metadata,
+        type=None,
+        converter=converters or None,
+        factory=field.factory,
+        kw_only=field.kw_only,
+        eq=field.eq,
+        order=field.order,
+        on_setattr=field.on_setattr,
+        alias=field.alias,
     )
 
 
@@ -401,7 +420,29 @@ def _transform_attrs(
             a = cd.get(attr_name, NOTHING)
 
             if not isinstance(a, _CountingAttr):
-                a = attrib() if a is NOTHING else attrib(default=a)
+                if typing.get_origin(type) is typing.Annotated:
+                    field, converters = None, []
+                    for arg in typing.get_args(type)[1:]:
+                        if isinstance(arg, _annotations.Field):
+                            if field is not None:
+                                msg = "only one Field annotation may be specified"
+                                raise ValueError(msg)
+                            field = arg
+                        elif isinstance(arg, Converter):
+                            converters.append(arg)
+                    if field is not None:
+                        a = _attrib_from_field(
+                            field,
+                            default=a,
+                            converters=converters,
+                        )
+                    else:
+                        if converters:
+                            msg = "Converter annotations must be used along with Field"
+                            raise ValueError(msg)
+                        a = attrib() if a is NOTHING else attrib(default=a)
+                else:
+                    a = attrib() if a is NOTHING else attrib(default=a)
             ca_list.append((attr_name, a))
 
         unannotated = ca_names - annot_names

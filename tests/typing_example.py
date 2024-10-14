@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from typing import Any, Dict, List, Tuple
+from typing import Annotated, Any, Dict, List, Tuple
 
 import attr
 import attrs
@@ -468,6 +468,22 @@ if attrs.has(foo) or attr.has(foo):
 @attrs.define(unsafe_hash=True)
 class Hashable:
     pass
+
+
+# Annotated
+
+
+@attr.define
+class UsingAnnotated:
+    a: Annotated[int, attr.Field()]
+    b: Annotated[str, attr.Field(kw_only=True)]
+    c: Annotated[str, attr.Field(factory=lambda: "xyz")]
+
+
+UsingAnnotated(1, b="v", c="abc")
+# XXX: the 'factory' argument of 'c' field does not make it non-required;
+# probably the mypy.attrs plugin needs adjustment.
+# UsingAnnotated(2, b="u")
 
 
 def test(cls: type) -> None:

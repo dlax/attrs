@@ -10,6 +10,7 @@ import re
 from contextlib import contextmanager
 from re import Pattern
 
+from ._annotations import Validator
 from ._config import get_run_validators, set_run_validators
 from ._make import _AndValidator, and_, attrib, attrs
 from .converters import default_if_none
@@ -17,6 +18,7 @@ from .exceptions import NotCallableError
 
 
 __all__ = [
+    "Gt",
     "and_",
     "deep_iterable",
     "deep_mapping",
@@ -493,6 +495,10 @@ def gt(val):
     .. versionadded:: 21.3.0
     """
     return _NumberValidator(val, ">", operator.gt)
+
+
+def Gt(val):
+    return Validator(gt(val))
 
 
 @attrs(repr=False, frozen=True, slots=True)

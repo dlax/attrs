@@ -42,3 +42,13 @@ class Field:
         self.kw_only = kw_only
         self.on_setattr = on_setattr
         self.alias = alias
+
+
+class Validator:
+    __slots__ = ("func",)
+
+    def __init__(self, func, /):
+        self.func = func
+
+    def __call__(self, obj, attribute, value):
+        return self.func(obj, attribute, value)

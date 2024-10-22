@@ -205,10 +205,10 @@ def attrib(
     )
 
 
-def _attrib_from_field(field, *, default, converters):
+def _attrib_from_field(field, *, default, validators, converters):
     return attrib(
         default=default,
-        validator=None,
+        validator=validators or None,
         repr=field.repr,
         hash=field.hash,
         init=field.init,
@@ -421,24 +421,30 @@ def _transform_attrs(
 
             if not isinstance(a, _CountingAttr):
                 if typing.get_origin(type) is typing.Annotated:
-                    field, converters = None, []
+                    field, converters, validators = None, [], []
                     for arg in typing.get_args(type)[1:]:
                         if isinstance(arg, _annotations.Field):
                             if field is not None:
                                 msg = "only one Field annotation may be specified"
                                 raise ValueError(msg)
                             field = arg
+                        elif isinstance(arg, _annotations.Validator):
+                            validators.append(arg)
                         elif isinstance(arg, Converter):
                             converters.append(arg)
                     if field is not None:
                         a = _attrib_from_field(
                             field,
                             default=a,
+                            validators=validators,
                             converters=converters,
                         )
                     else:
                         if converters:
                             msg = "Converter annotations must be used along with Field"
+                            raise ValueError(msg)
+                        if validators:
+                            msg = "Validator annotations must be used along with Field"
                             raise ValueError(msg)
                         a = attrib() if a is NOTHING else attrib(default=a)
                 else:

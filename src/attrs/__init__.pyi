@@ -24,6 +24,7 @@ from attr import assoc as assoc
 from attr import Attribute as Attribute
 from attr import AttrsInstance as AttrsInstance
 from attr import Field as Field
+from attr import Validator as Validator
 from attr import cmp_using as cmp_using
 from attr import converters as converters
 from attr import Converter as Converter

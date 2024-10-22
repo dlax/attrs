@@ -4,12 +4,22 @@ import pytest
 
 import attr
 
+from attr.validators import Gt, lt
+
+
+def validate_x(obj, attribute, value):
+    if value == 41:
+        raise ValueError("forbidden value")
+
 
 @attr.define
 class Obj:
     x: Annotated[
         int,
         attr.Field(factory=lambda: 42),
+        attr.Validator(validate_x),
+        attr.Validator(lt(100)),
+        Gt(-1),
     ]
     y: Annotated[
         int,
@@ -39,6 +49,20 @@ def test_init_false():
         Obj(y=1, a="b")
 
 
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"x": 41, "y": 0}, "forbidden"),
+        ({"x": -2, "y": 0}, "'x' must be > -1: -2"),
+        ({"x": 102, "y": 0}, "'x' must be < 100: 102"),
+    ],
+)
+def test_valid(kwargs, match):
+    """Annotated Obj fails to initialize from invalid values."""
+    with pytest.raises(ValueError, match=match):
+        Obj(**kwargs)
+
+
 def test_multiple_field_annotations():
     """Passing several Field annotations raises a ValueError."""
 
@@ -59,5 +83,17 @@ def test_converters_with_field_annotation():
 
     with pytest.raises(
         ValueError, match="Converter annotations must be used along with Field"
+    ):
+        attr.define(Invalid)
+
+
+def test_validators_with_field_annotation():
+    """A Field annotation is required to use a Validator annotation."""
+
+    class Invalid:
+        f: Annotated[int, attr.Validator(lambda x: x)]
+
+    with pytest.raises(
+        ValueError, match="Validator annotations must be used along with Field"
     ):
         attr.define(Invalid)

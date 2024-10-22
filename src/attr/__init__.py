@@ -8,7 +8,7 @@ from functools import partial
 from typing import Callable, Protocol
 
 from . import converters, exceptions, filters, setters, validators
-from ._annotations import Field
+from ._annotations import Field, Validator
 from ._cmp import cmp_using
 from ._config import get_run_validators, set_run_validators
 from ._funcs import asdict, assoc, astuple, evolve, has, resolve_types
@@ -44,6 +44,7 @@ __all__ = [
     "Factory",
     "Field",
     "NOTHING",
+    "Validator",
     "asdict",
     "assoc",
     "astuple",
